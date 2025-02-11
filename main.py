@@ -6,6 +6,17 @@ from telegram_service import TelegramConfig, TelegramService
 
 app = FastAPI()
 
+from fastapi.middleware.cors import CORSMiddleware
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Разрешает запросы со всех источников
+    allow_credentials=True,
+    allow_methods=["*"],  # Разрешает все методы (GET, POST, etc.)
+    allow_headers=["*"],  # Разрешает все заголовки
+)
+
+
 @app.post("/send_message/photo")
 async def send_message(
     username: str = Form(...),
