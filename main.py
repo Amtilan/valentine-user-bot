@@ -10,10 +10,16 @@ app = FastAPI()
 async def send_message(
     username: str = Form(...),
     message: str = Form(...),
-    photo: UploadFile = File(None)  
+    photo: UploadFile = File(None)
 ):
     tmp_file_path = None
     try:
+        if photo and not isinstance(photo, UploadFile):
+            raise HTTPException(
+                status_code=400,
+                detail="Поле 'photo' должно быть файлом, а не текстом."
+            )
+
         if photo:
             file_bytes = await photo.read()
             suffix = os.path.splitext(photo.filename)[1] if photo.filename else ""
@@ -28,11 +34,13 @@ async def send_message(
             photo_path=tmp_file_path or None
         )
         return {"status": "success", "detail": "Сообщение отправлено"}
+    except HTTPException as he:
+        raise he
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Ошибка при отправке: {e}")
+        raise HTTPException(status_code=500, detail=f"Ошибка при отправке: {str(e)}")
     finally:
-        if tmp_file_path:
+        if tmp_file_path and os.path.exists(tmp_file_path):
             try:
                 os.remove(tmp_file_path)
-            except Exception:
-                pass
+            except Exception as e:
+                print(f"Ошибка при удалении файла: {e}")
