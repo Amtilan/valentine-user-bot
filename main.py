@@ -6,21 +6,16 @@ from telegram_service import TelegramConfig, TelegramService
 
 app = FastAPI()
 
-@app.post("/send_message")
+@app.post("/send_message/photo")
 async def send_message(
     username: str = Form(...),
     message: str = Form(...),
-    photo: UploadFile = File(None)
+    photo: Optional[UploadFile] = File(None)  # Убедитесь, что photo не обязательно
 ):
     tmp_file_path = None
     try:
-        if photo and not isinstance(photo, UploadFile):
-            raise HTTPException(
-                status_code=400,
-                detail="Поле 'photo' должно быть файлом, а не текстом."
-            )
-
         if photo:
+            # Если файл загружен, создаем временный файл
             file_bytes = await photo.read()
             suffix = os.path.splitext(photo.filename)[1] if photo.filename else ""
             with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp_file:
@@ -28,19 +23,41 @@ async def send_message(
                 tmp_file_path = tmp_file.name
 
         tg_service = TelegramService(config=TelegramConfig())
+        # Передаем путь к файлу только если файл был загружен
         await tg_service.send_file_or_msg(
             username=username,
             message=message,
             photo_path=tmp_file_path or None
         )
         return {"status": "success", "detail": "Сообщение отправлено"}
-    except HTTPException as he:
-        raise he
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Ошибка при отправке: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Ошибка при отправке: {e}")
     finally:
-        if tmp_file_path and os.path.exists(tmp_file_path):
+        if tmp_file_path:
             try:
                 os.remove(tmp_file_path)
-            except Exception as e:
-                print(f"Ошибка при удалении файла: {e}")
+            except Exception:
+                pass
+
+@app.post("/send_message/message")
+async def send_message(
+    username: str = Form(...),
+    message: str = Form(...),
+):
+    tmp_file_path = None
+    try:
+        tg_service = TelegramService(config=TelegramConfig())
+        await tg_service.send_file_or_msg(
+            username=username,
+            message=message,
+            photo_path=tmp_file_path or None
+        )
+        return {"status": "success", "detail": "Сообщение отправлено"}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Ошибка при отправке: {e}")
+    finally:
+        if tmp_file_path:
+            try:
+                os.remove(tmp_file_path)
+            except Exception:
+                pass
