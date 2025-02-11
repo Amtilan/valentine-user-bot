@@ -10,7 +10,7 @@ app = FastAPI()
 async def send_message(
     username: str = Form(...),
     message: str = Form(...),
-    photo: Optional[UploadFile] = File(None)  
+    photo: UploadFile = File(None)  
 ):
     tmp_file_path = None
     try:
