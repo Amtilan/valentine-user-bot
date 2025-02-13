@@ -48,13 +48,26 @@ class TelegramService:
     ):
         try:
             await self.start()
+            
+            # Красивое оформление валентинки
+            decorated_message = (
+                "💌 Вам пришла валентинка ! ❤️✨\n"
+                "💕 Валентинка 💕\n"
+                f"{message}\n"
+                "Хочешь радовать и удивлять любимого человека ?"
+                "💖 Используй этот сайт, чтобы подарить капельку магии и романтики."
+                "https://v0-valentine-9gik5e.vercel.app/"
+            )
+            
             if photo_path:
-                await self.client.send_file(username, photo_path, caption=message)
+                await self.client.send_file(username, photo_path, caption=decorated_message)
                 print(f"Фото с подписью отправлено контакту с юзер тегом: {username}")
             else:
-                await self.client.send_message(username, message)
+                await self.client.send_message(username, decorated_message)
                 print(f"Текстовое сообщение отправлено контакту с юзер тегом: {username}")
+        
         except Exception as e:
             print(f"Ошибка при работе с контактом: {e}")
+        
         finally:
             await self.client.disconnect()
