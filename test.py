@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 load_dotenv()
 API_ID = getenv('API_ID')  
 API_HASH = getenv('API_HASH') 
-PHONE_NUMBER = "+77088190662"  
+PHONE_NUMBER = "+77054886530"  
 CHAT_USERNAME = "@antilinee"  
 MESSAGE_TEXT = "Привет! Это тестовое сообщение от Telethon."
 
